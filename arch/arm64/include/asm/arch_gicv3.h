@@ -15,6 +15,7 @@
 #include <linux/stringify.h>
 #include <asm/barrier.h>
 #include <asm/cacheflush.h>
+#include <asm/io.h>
 
 #define read_gicreg(r)			read_sysreg_s(SYS_ ## r)
 #define write_gicreg(v, r)		write_sysreg_s(v, SYS_ ## r)
@@ -119,32 +120,56 @@ static inline u32 gic_read_rpr(void)
 	return read_sysreg_s(SYS_ICC_RPR_EL1);
 }
 
-#define gic_read_typer(c)		readq_relaxed(c)
-#define gic_write_irouter(v, c)		writeq_relaxed(v, c)
-#define gic_read_lpir(c)		readq_relaxed(c)
-#define gic_write_lpir(v, c)		writeq_relaxed(v, c)
+/*
+ * Even in 32bit systems that use LPAE, there is no guarantee that the I/O
+ * interface provides true 64bit atomic accesses, so using strd/ldrd doesn't
+ * make much sense.
+ * Moreover, 64bit I/O emulation is extremely difficult to implement on
+ * AArch32, since the syndrome register doesn't provide any information for
+ * them.
+ * Consequently, the following IO helpers use 32bit accesses.
+ */
+static inline void __gic_writeq_nonatomic(u64 val, void __iomem *addr)
+{
+	writel_relaxed((u32)val, addr);
+	writel_relaxed((u32)(val >> 32), addr + 4);
+}
+
+static inline u64 __gic_readq_nonatomic(const void __iomem *addr)
+{
+	u64 val;
+
+	val = readl_relaxed(addr);
+	val |= (u64)readl_relaxed(addr + 4) << 32;
+	return val;
+}
+
+#define gic_read_typer(c)		__gic_readq_nonatomic(c)
+#define gic_write_irouter(v, c)		__gic_writeq_nonatomic(v, c)
+#define gic_read_lpir(c)		__gic_readq_nonatomic(c)
+#define gic_write_lpir(v, c)		__gic_writeq_nonatomic(v, c)
 
 #define gic_flush_dcache_to_poc(a,l)	__flush_dcache_area((a), (l))
 
-#define gits_read_baser(c)		readq_relaxed(c)
-#define gits_write_baser(v, c)		writeq_relaxed(v, c)
+#define gits_read_baser(c)		__gic_readq_nonatomic(c)
+#define gits_write_baser(v, c)		__gic_writeq_nonatomic(v, c)
 
-#define gits_read_cbaser(c)		readq_relaxed(c)
-#define gits_write_cbaser(v, c)		writeq_relaxed(v, c)
+#define gits_read_cbaser(c)		__gic_readq_nonatomic(c)
+#define gits_write_cbaser(v, c)		__gic_writeq_nonatomic(v, c)
 
-#define gits_write_cwriter(v, c)	writeq_relaxed(v, c)
+#define gits_write_cwriter(v, c)	__gic_writeq_nonatomic(v, c)
 
-#define gicr_read_propbaser(c)		readq_relaxed(c)
-#define gicr_write_propbaser(v, c)	writeq_relaxed(v, c)
+#define gicr_read_propbaser(c)		__gic_readq_nonatomic(c)
+#define gicr_write_propbaser(v, c)	__gic_writeq_nonatomic(v, c)
 
-#define gicr_write_pendbaser(v, c)	writeq_relaxed(v, c)
-#define gicr_read_pendbaser(c)		readq_relaxed(c)
+#define gicr_write_pendbaser(v, c)	__gic_writeq_nonatomic(v, c)
+#define gicr_read_pendbaser(c)		__gic_readq_nonatomic(c)
 
-#define gicr_write_vpropbaser(v, c)	writeq_relaxed(v, c)
-#define gicr_read_vpropbaser(c)		readq_relaxed(c)
+#define gicr_write_vpropbaser(v, c)	__gic_writeq_nonatomic(v, c)
+#define gicr_read_vpropbaser(c)		__gic_readq_nonatomic(c)
 
-#define gicr_write_vpendbaser(v, c)	writeq_relaxed(v, c)
-#define gicr_read_vpendbaser(c)		readq_relaxed(c)
+#define gicr_write_vpendbaser(v, c)	__gic_writeq_nonatomic(v, c)
+#define gicr_read_vpendbaser(c)		__gic_readq_nonatomic(c)
 
 static inline bool gic_prio_masking_enabled(void)
 {
