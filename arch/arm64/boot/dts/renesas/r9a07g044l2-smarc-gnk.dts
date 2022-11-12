@@ -72,3 +72,11 @@
 &ov5645 {
 	status = "okay";
 };
+
+&panel {
+	status = "okay";
+};
+
+&pwm_backlight {
+	status = "okay";
+};
