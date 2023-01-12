@@ -233,7 +233,7 @@
 	status = "okay";
 
 	isl76683@44 {
-		status = "disabled";
+		status = "okay";
 		compatible = "isil,isl76683";
 		reg = <0x44>;
 		interrupt-parent = <&pinctrl>;
