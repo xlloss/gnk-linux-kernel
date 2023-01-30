@@ -173,6 +173,22 @@
 		brightness-levels = <0 50 80 110 140 170 200 220 230 240 255>;
 		default-brightness-level = <10>;
 	};
+
+	i2c_gpio: i2c_gpio {
+		compatible = "i2c-gpio";
+		sda-gpios = <&pinctrl RZG2L_GPIO(33, 0) GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&pinctrl RZG2L_GPIO(32, 1) GPIO_ACTIVE_HIGH>;
+		i2c-gpio,delay-us = <2>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		vgg804834_ts: vgg804834_ts {
+			compatible = "rzg2l,touchscreen";
+			reg = <0x38>;
+			tsirq-gpios = <&pinctrl RZG2L_GPIO(47, 1) GPIO_ACTIVE_LOW>;
+		};
+	};
 };
 
 &audio_clk1{
@@ -610,5 +626,13 @@
 	gpt3_pins: gpt3 {
 		/* Channel A */
 		pinmux = <RZG2L_PORT_PINMUX(3, 0, 3)>;
+	};
+
+	tp_sda_pins: tp_sda_ {
+		pinmux = <RZG2L_GPIO(33, 0)>;
+	};
+
+	tp_scl_pins: tp_scl_ {
+		pinmux = <RZG2L_GPIO(32, 1)>;
 	};
 };
