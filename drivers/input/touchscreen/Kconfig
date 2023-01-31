@@ -1335,4 +1335,14 @@ config TOUCHSCREEN_ZINITIX
 	  To compile this driver as a module, choose M here: the
 	  module will be called zinitix.
 
+config TOUCHSCREEN_VGG804834_0TSLWC
+	tristate "VGG804834-0TSLWC touchscreen support"
+	depends on I2C
+	help
+	  Say Y here if you have a touchscreen using VGG804834-0TSLWC.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called vgg804834_ts_i2c.
 endif
