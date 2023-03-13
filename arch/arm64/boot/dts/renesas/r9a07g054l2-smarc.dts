@@ -55,3 +55,9 @@
 	/delete-node/ sd0-dev-sel-hog;
 	/delete-node/ sd1-pwr-en-hog;
 };
+
+&drpai0 {
+	memory-region = <&drp_reserved>;
+	linux-memory-region = < &{/memory@48000000} >; 
+	status = "okay";
+};
